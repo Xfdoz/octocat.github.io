@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ajouter Minutes</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="container">
+
+    <h2>Ajouter des minutes d'utilisation</h2>
+
+    <div class="card">
+      <label for="employeSelect">Employé :</label>
+      <select id="employeSelect"></select>
+
+      <input type="number" id="minutes" placeholder="Minutes" min="1" />
+
+      <button id="saveBtn">Enregistrer</button>
+      <p id="msg" style="color:#34d399;"></p>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
