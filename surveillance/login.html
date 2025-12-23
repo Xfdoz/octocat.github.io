@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Connexion - Surveillance R.M</title>
+    <style>
+        /* Styles spécifiques pour centrer la carte de connexion */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        /* Lueur néon derrière la carte comme sur tes images */
+        .login-card::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 110%;
+            height: 110%;
+            background: radial-gradient(circle, rgba(0, 210, 255, 0.05) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .login-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        .login-header p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Bouton Bleu Royal (Se connecter) */
+        .btn-primary {
+            background: linear-gradient(to right, #00d2ff, #00d2ff);
+            flex: 2;
+        }
+
+        /* Bouton Cyan (Retour) */
+        .btn-secondary {
+            background: #00e5ff;
+            color: #0f172a;
+            flex: 1;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+            background: #33ebff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="login-header">
+            <h1>ACCÈS ADMINISTRATEUR</h1>
+            <p>Connexion sécurisée R.M</p>
+        </div>
+
+        <div class="form-group">
+            <label for="adminCode">Code d'accès administrateur</label>
+            <input type="password" id="adminCode" placeholder="Entrez le code" autofocus>
+        </div>
+
+        <div class="button-group">
+            <button onclick="verifierConnexion()" class="btn-primary">🔐 Se connecter</button>
+            <button onclick="window.location.href='index.html'" class="btn-secondary">Retour</button>
+        </div>
+    </div>
+
+    <script>
+        function verifierConnexion() {
+            const code = document.getElementById('adminCode').value;
+            // On garde ton code secret actuel
+            if (code === "Moucice91@") {
+                window.location.href = "admin.html";
+            } else {
+                alert("Code d'accès incorrect");
+                document.getElementById('adminCode').value = "";
+            }
+        }
+
+        // Permet de valider avec la touche "Entrée"
+        document.getElementById('adminCode').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                verifierConnexion();
+            }
+        });
+    </script>
+
+</body>
+</html>

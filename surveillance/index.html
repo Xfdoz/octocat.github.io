@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Surveillance Groupe Moucice - Bilan</title>
+</head>
+<body>
+    <div id="overlay-entree">
+        <div class="logo-section">
+            <img src="logo.png" alt="Logo" class="logo-image">
+            <h1 class="main-title">Surveillance Groupe Moucice</h1>
+            <p style="color: #94a3b8; margin-bottom: 20px;">Plateforme de suivi et de contrôle des magasins</p>
+            <button onclick="entrerSurLeSite()" style="max-width: 300px;">Accéder au tableau de bord</button>
+        </div>
+    </div>
+
+    <div id="main-content" style="display: none; width: 100%;">
+        <button class="admin-btn" onclick="window.location.href='login.html'">⚙️ ACCÈS ADMIN</button>
+        
+        <div class="logo-section">
+            <img src="logo.png" alt="Logo Surveillance RM" class="logo-image">
+            <h1 class="main-title">SURVEILLANCE GROUPE MOUCICE</h1>
+            <p class="sub-title">Plateforme de suivi et de contrôle des magasins</p>
+        </div>
+
+        <div class="container">
+            <h3>🏪 SÉLECTIONNER UN MAGASIN</h3>
+            
+            <div style="margin-bottom: 15px; position: relative;">
+                <input type="text" id="searchMagasinInput" placeholder="Rechercher un magasin..." 
+                       onkeyup="filtrerMagasinsAccueil()" 
+                       style="width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid rgba(0, 210, 255, 0.3); background: rgba(15, 23, 42, 0.8); color: white; outline: none;">
+            </div>
+
+            <select id="selectMagasin">
+                <option value="">Sélectionnez un magasin</option>
+            </select>
+        </div>
+
+        <div class="container">
+            <h3>📊 RÉSULTATS</h3>
+            <div id="loading-spinner" style="display: none; text-align: center; padding: 20px;">
+                <div class="spinner"></div>
+                <p style="color: var(--neon-blue);">Chargement des données du magasin…</p>
+            </div>
+            <ul id="listeEmployes"></ul>
+        </div>
+
+        <footer>
+            <p>© 2025 Surveillance R.M | Mentions légales | Version 1.0.4</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAhvxeoum5Sy9RQMWT_49K2EY4pld1R83c",
+          authDomain: "surveillance-ad075.firebaseapp.com",
+          projectId: "surveillance-ad075",
+          storageBucket: "surveillance-ad075.firebasestorage.app",
+          messagingSenderId: "666577257762",
+          appId: "1:666577257762:web:e8124f32f86f7a492c517b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const selectMagasin = document.getElementById('selectMagasin');
+        const listeEmployes = document.getElementById('listeEmployes');
+        const spinner = document.getElementById('loading-spinner');
+
+        const attendre = ms => new Promise(res => setTimeout(res, ms));
+
+        window.entrerSurLeSite = () => {
+            document.getElementById('overlay-entree').style.display = 'none';
+            document.getElementById('main-content').style.display = 'flex'; 
+            chargerLesMagasins();
+        };
+
+        // NOUVEAU : FILTRE RECHERCHE ACCUEIL
+        window.filtrerMagasinsAccueil = () => {
+            const input = document.getElementById('searchMagasinInput').value.toLowerCase();
+            const options = selectMagasin.options;
+            for (let i = 1; i < options.length; i++) {
+                const text = options[i].text.toLowerCase();
+                options[i].style.display = text.includes(input) ? "" : "none";
+            }
+        };
+
+        async function chargerLesMagasins() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "magasins"));
+                selectMagasin.innerHTML = '<option value="">Sélectionnez un magasin</option>';
+                querySnapshot.forEach((doc) => {
+                    let opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = doc.id;
+                    selectMagasin.appendChild(opt);
+                });
+            } catch (e) {
+                selectMagasin.innerHTML = '<option value="">Erreur de chargement</option>';
+            }
+        }
+
+        selectMagasin.onchange = async () => {
+            const magasinId = selectMagasin.value;
+            if (!magasinId) { listeEmployes.innerHTML = ""; return; }
+            listeEmployes.innerHTML = "";
+            spinner.style.display = "block";
+            try {
+                await attendre(1200);
+                const querySnapshot = await getDocs(collection(db, "magasins", magasinId, "employes"));
+                spinner.style.display = "none"; 
+                if (querySnapshot.empty) {
+                    listeEmployes.innerHTML = "<li>Aucun employé pour ce magasin.</li>";
+                    return;
+                }
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    let li = document.createElement('li');
+                    li.innerHTML = `<span>${data.nom}</span><span class="minutes">${data.temps} min</span>`;
+                    listeEmployes.appendChild(li);
+                });
+            } catch (e) { 
+                spinner.style.display = "none";
+                console.error(e); 
+            }
+        };
+    </script>
+</body>
+</html>
