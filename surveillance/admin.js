@@ -47,17 +47,17 @@ async function rafraichirDonnees() {
 
         for (const docSnap of magasinsSnap.docs) {
             const magId = docSnap.id;
-            const magData = docSnap.data();
             const empSnap = await getDocs(collection(db, "magasins", magId, "employes"));
             
+            // Ligne du formulaire X-Flash avec Saisie des Montants Nuls
             htmlXFlash += `
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <span style="font-weight:bold; width:100px;">${magId}</span>
-                    <div style="display:flex; gap:10px;">
-                        <label style="font-size:0.75rem;"><input type="checkbox" class="xf-matin" data-name="${magId}"> X-M</label>
-                        <label style="font-size:0.75rem;"><input type="checkbox" class="xf-soir" data-name="${magId}"> X-S</label>
-                        <label style="font-size:0.75rem; color:#ef4444;"><input type="checkbox" class="nul-matin" data-name="${magId}"> N-M</label>
-                        <label style="font-size:0.75rem; color:#ef4444;"><input type="checkbox" class="nul-soir" data-name="${magId}"> N-S</label>
+                <div style="display:grid; grid-template-columns: 1fr 1.5fr; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <span style="font-weight:bold; color:var(--accent-blue);">${magId}</span>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <label style="font-size:0.7rem;"><input type="checkbox" class="xf-matin" data-name="${magId}"> X-M</label>
+                        <label style="font-size:0.7rem;"><input type="checkbox" class="xf-soir" data-name="${magId}"> X-S</label>
+                        <input type="number" placeholder="Nul M(€)" class="val-nm" data-name="${magId}" style="width:65px; padding:2px; font-size:0.7rem; background:rgba(0,0,0,0.3); color:white; border:1px solid #444;">
+                        <input type="number" placeholder="Nul S(€)" class="val-ns" data-name="${magId}" style="width:65px; padding:2px; font-size:0.7rem; background:rgba(0,0,0,0.3); color:white; border:1px solid #444;">
                     </div>
                 </div>`;
 
@@ -121,15 +121,35 @@ async function rafraichirDonnees() {
     } catch (error) { console.error(error); }
 }
 
-// --- RAPPORT X-FLASH ---
+// --- RAPPORT X-FLASH & NULS AVEC MONTANTS ---
 window.genererMessageRapport = () => {
     const date = new Date().toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit'});
+    
+    // Checkboxes X-Flash
     const xMatin = Array.from(document.querySelectorAll('.xf-matin:checked')).map(cb => cb.dataset.name);
     const xSoir = Array.from(document.querySelectorAll('.xf-soir:checked')).map(cb => cb.dataset.name);
-    const nulMatin = Array.from(document.querySelectorAll('.nul-matin:checked')).map(cb => cb.dataset.name);
-    const nulSoir = Array.from(document.querySelectorAll('.nul-soir:checked')).map(cb => cb.dataset.name);
+    
+    // Inputs Montants Nuls (On ne prend que ceux > 0)
+    const nulMatin = Array.from(document.querySelectorAll('.val-nm'))
+        .filter(input => input.value && parseFloat(input.value) > 0)
+        .map(input => `${input.dataset.name} (${input.value}€)`);
+        
+    const nulSoir = Array.from(document.querySelectorAll('.val-ns'))
+        .filter(input => input.value && parseFloat(input.value) > 0)
+        .map(input => `${input.dataset.name} (${input.value}€)`);
 
-    let rapport = `Equipe matin :\n\nBonjour, ( Si vous recevez le message = votre équipe est concernée )\n\nVoici le point sur les envois de l’équipe de la Matinée ${date} :\n\nMagasins n’ayant pas envoyé le X Flash de la Matinée :\n${xMatin.length > 0 ? xMatin.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque X - Flash : ${xMatin.length}\n\nMagasins n’ayant pas envoyé les Nuls Tickets de la Matinée :\n${nulMatin.length > 0 ? nulMatin.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque Nuls Tickets : ${nulMatin.length}\n\n--------------------------\n\nEquipe Soir :\n\nD'autre part, voici le point sur les envois de l’équipe du Soir ${date} :\n\nMagasins n’ayant pas envoyé le X Flash du Soir :\n${xSoir.length > 0 ? xSoir.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque X - Flash : ${xSoir.length}\n\nMagasins n’ayant pas envoyé les Nuls Tickets du Soir :\n${nulSoir.length > 0 ? nulSoir.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque Nuls Tickets : ${nulSoir.length}`;
+    let rapport = `Equipe matin :\n\nBonjour, ( Si vous recevez le message = votre équipe est concernée )\n\nVoici le point sur les envois de l’équipe de la Matinée ${date} :\n\n`;
+    
+    rapport += `Magasins n’ayant pas envoyé le X Flash de la Matinée :\n${xMatin.length > 0 ? xMatin.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque X - Flash : ${xMatin.length}\n\n`;
+    
+    rapport += `Magasins n’ayant pas envoyé les Nuls Tickets de la Matinée :\n${nulMatin.length > 0 ? nulMatin.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque Nuls Tickets : ${nulMatin.length}\n\n`;
+    
+    rapport += `--------------------------\n\nEquipe Soir :\n\nD'autre part, voici le point sur les envois de l’équipe du Soir ${date} :\n\n`;
+    
+    rapport += `Magasins n’ayant pas envoyé le X Flash du Soir :\n${xSoir.length > 0 ? xSoir.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque X - Flash : ${xSoir.length}\n\n`;
+    
+    rapport += `Magasins n’ayant pas envoyé les Nuls Tickets du Soir :\n${nulSoir.length > 0 ? nulSoir.map(m => `- ${m}`).join('\n') : '- Aucun'}\n\nTotal Manque Nuls Tickets : ${nulSoir.length}`;
+    
     document.getElementById('resultatRapport').value = rapport;
 };
 
@@ -137,16 +157,16 @@ window.copierRapport = () => {
     const text = document.getElementById('resultatRapport');
     text.select();
     document.execCommand('copy');
-    alert("Copié !");
+    alert("Rapport copié avec succès !");
 };
 
-// --- ACTIONS EMPLOYES ---
+// --- ACTIONS EMPLOYES & MAGASINS ---
 window.gererPhoto = (magId, empId, photoNom, nom) => {
     const overlay = document.createElement('div');
     overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; justify-content:center; align-items:center; z-index:1000; cursor:pointer;";
     overlay.onclick = () => overlay.remove();
     const src = photoNom ? `photos/${photoNom}` : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-    overlay.innerHTML = `<div class="container" style="text-align:center;"><img src="${src}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'" style="max-width:300px; border-radius:10px;"><h2 style="color:white; margin-top:10px;">${nom}</h2></div>`;
+    overlay.innerHTML = `<div style="text-align:center;"><img src="${src}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'" style="max-width:300px; border-radius:10px; border: 2px solid #00d2ff;"><h2 style="color:white; margin-top:10px;">${nom}</h2></div>`;
     document.body.appendChild(overlay);
 };
 
@@ -187,7 +207,7 @@ window.ajouterEmploye = async () => {
     const mag = document.getElementById('selectMagasinAdmin').value;
     const nom = document.getElementById('nomEmploye').value.trim();
     const temps = document.getElementById('tempsTel').value;
-    if (!mag || !nom) return alert("Champs requis");
+    if (!mag || !nom) return alert("Magasin et Nom requis");
     await addDoc(collection(db, "magasins", mag, "employes"), {
         nom: nom,
         temps: parseInt(temps) || 0,
@@ -221,7 +241,7 @@ window.supprimerEmploye = async (magId, empId, nom) => {
 };
 
 window.supprimerMagasinSecurise = async (id) => {
-    if (confirm("Supprimer " + id + " ?")) {
+    if (confirm("🚨 ATTENTION : Supprimer le magasin " + id + " supprimera tout son historique. Confirmer ?")) {
         await deleteDoc(doc(db, "magasins", id));
         rafraichirDonnees();
     }
